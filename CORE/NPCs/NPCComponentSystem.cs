@@ -77,6 +77,7 @@ namespace KArpReborn.CORE.NPCs
         public T AddComponent<T>(T comp) where T : Component {
             this.components.Add(comp);
             comp.npc = npc;
+            comp.owner = this;
             return comp;
         }
 

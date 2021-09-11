@@ -52,28 +52,28 @@ namespace KArpReborn.CORE.Players
 
         public override void PostUpdateEquips()
         {
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
             // statLifeMax is the player's vanilla health. We'll use this value to increase the player's total life after mods,
             //  which essentially turns life crystals/fruit into a multiplier instead of flat addition.
             float lifeMultiplier = 1f + (player.statLifeMax - 100f) / 400f;
             // Figure out how much life, if any, has been added by other mods.
             int addedLife = player.statLifeMax2 - player.statLifeMax;
             // Gives the player 115 base HP (why?), +10 per point of Resilience, and +5 per level.
-            player.statLifeMax2 += 115 + Stats[(int)PlayerStats.Resilience] * 10 + level * 5 - player.statLifeMax;
+            player.statLifeMax2 += 115 + Stats[(int)PlayerStats.Resilience] * config.ResilienceHealthPerPoint + level * config.PlayerHealthGrowth - player.statLifeMax;
             // We're trying to treat health gained from leveling as base health. Increase it by life crystals/fruits, and *then* factor in other modifiers.
             player.statLifeMax2 = (int)Math.Round(player.statLifeMax2 * lifeMultiplier) + addedLife;
             float manaMultiplier = 1f + (player.statManaMax - 20f) / 180f;
             int addedMana = player.statManaMax2 - player.statManaMax;
-            player.statManaMax2 += 19 + level + Stats[(int)PlayerStats.Wits] * 3 - player.statManaMax;
+            player.statManaMax2 += 19 + level + Stats[(int)PlayerStats.Wits] * config.WitsManaPerPoint - player.statManaMax;
             player.statManaMax2 = (int)Math.Round(player.statManaMax2 * manaMultiplier) + addedMana;
-            player.statDefense += Stats[(int)PlayerStats.Resilience];
+            player.statDefense += config.ResilienceDefensePerPoint * Stats[(int)PlayerStats.Resilience];
             for (int i = 0; i < resists.Length; i++)
                 resists[i] += Stats[(int)PlayerStats.Wits];
 
-            player.allDamage *= 1f + 0.05f * Stats[(int)PlayerStats.Potency];
-            player.meleeSpeed *= 1f + 0.05f * Stats[(int)PlayerStats.Quickness];
-            player.moveSpeed *= 1f + 0.05f * Stats[(int)PlayerStats.Quickness];
-            player.pickSpeed *= 1f + 0.05f * Stats[(int)PlayerStats.Quickness];
-            player.jumpSpeedBoost *= 1f + 0.05f * Stats[(int)PlayerStats.Quickness];
+            player.allDamage *= 1f + config.WitsDamagePerPoint * Stats[(int)PlayerStats.Potency];
+            player.meleeSpeed *= 1f + config.QuicknessAttackSpeedPerPoint * Stats[(int)PlayerStats.Quickness];
+            player.moveSpeed *= 1f + config.QuicknessMovementPerPoint * Stats[(int)PlayerStats.Quickness];
+            player.jumpSpeedBoost *= 1f + config.QuicknessMovementPerPoint * Stats[(int)PlayerStats.Quickness];
         }
 
         public override void ModifyHitNPC(Item item, NPC npc, ref int damage, ref float knockback, ref bool crit)
@@ -89,25 +89,29 @@ namespace KArpReborn.CORE.Players
             npcct.AddPlayer(this.player);
             Networking.NPCCTSyncPacket.Write(npc.whoAmI, player.whoAmI);
 
-            NPCStatDef npcsd = npccs.TryGetComponent<NPCStatDef>(() => new NPCStatDef());
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            if (config.DoEnemyEvasion) {
 
-            float accuracy = GetAccuracy();
-            float evasion = npcsd.GetEvasion();
+                NPCStatDef npcsd = npccs.TryGetComponent<NPCStatDef>(() => new NPCStatDef());
 
-            //Asymptotic curve, where if (evasion == accuracy) then chanceToEvade = 0.25.
-            //The higher your evasion/accuracy, the less each point actually does.
-            float chanceToEvade = evasion / (evasion + (3 * accuracy));
-            Random rand = new Random();
-            double d = rand.NextDouble();
-            if (d <= chanceToEvade) {
-                damage = 0;
-                knockback = 0;
-                crit = false;
-                CombatText.NewText(npc.getRect(), Color.Green, "Evaded!");
-                return;
+                float accuracy = GetAccuracy();
+                float evasion = npcsd.GetEvasion();
+
+                //Asymptotic curve, where if (evasion == accuracy) then chanceToEvade = 0.25.
+                //The higher your evasion/accuracy, the less each point actually does.
+                float chanceToEvade = evasion / (evasion + (3 * accuracy));
+                Random rand = new Random();
+                double d = rand.NextDouble();
+                if (d <= chanceToEvade) {
+                    damage = 0;
+                    knockback = 0;
+                    crit = false;
+                    CombatText.NewText(npc.getRect(), Color.Green, "Evaded!");
+                    return;
+                }
             }
 
-            this.player.HealEffect((int)(0.002 * Stats[(int)PlayerStats.Potency] * damage));
+            this.player.HealEffect((int)(config.WitsLeechPerPoint * Stats[(int)PlayerStats.Potency] * damage));
         }
 
         public override void ModifyHitNPCWithProj(Projectile proj, NPC target, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
@@ -124,25 +128,29 @@ namespace KArpReborn.CORE.Players
             npcct.AddPlayer(this.player);
             Networking.NPCCTSyncPacket.Write(target.whoAmI, player.whoAmI);
 
-            NPCStatDef npcsd = npccs.TryGetComponent<NPCStatDef>(() => new NPCStatDef());
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            if (config.DoEnemyEvasion) {
 
-            float accuracy = GetAccuracy();
-            float evasion = npcsd.GetEvasion();
+                NPCStatDef npcsd = npccs.TryGetComponent<NPCStatDef>(() => new NPCStatDef());
 
-            //Asymptotic curve, where if (evasion == accuracy) then chanceToEvade = 0.25.
-            //The higher your evasion/accuracy, the less each point actually does.
-            float chanceToEvade = evasion / (evasion + (3 * accuracy));
-            Random rand = new Random();
-            double d = rand.NextDouble();
-            if (d <= chanceToEvade) {
-                damage = 0;
-                knockback = 0;
-                crit = false;
-                CombatText.NewText(target.getRect(), Color.Green, "Evaded!");
-                return;
+                float accuracy = GetAccuracy();
+                float evasion = npcsd.GetEvasion();
+
+                //Asymptotic curve, where if (evasion == accuracy) then chanceToEvade = 0.25.
+                //The higher your evasion/accuracy, the less each point actually does.
+                float chanceToEvade = evasion / (evasion + (3 * accuracy));
+                Random rand = new Random();
+                double d = rand.NextDouble();
+                if (d <= chanceToEvade) {
+                    damage = 0;
+                    knockback = 0;
+                    crit = false;
+                    CombatText.NewText(target.getRect(), Color.Green, "Evaded!");
+                    return;
+                }
             }
 
-            this.player.HealEffect((int)(0.002 * Stats[(int)PlayerStats.Potency] * damage));
+            this.player.HealEffect((int)(config.WitsLeechPerPoint * Stats[(int)PlayerStats.Potency] * damage));
         }
 
         public override void ModifyHitPvp(Item item, Player target, ref int damage, ref bool crit)
@@ -153,17 +161,22 @@ namespace KArpReborn.CORE.Players
                 return;
             }
 
-            float accuracy = GetAccuracy();
-            float evasion = defenderPlayer.GetEvasion();
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            if (config.DoEnemyEvasion) {
+                float accuracy = GetAccuracy();
+                float evasion = defenderPlayer.GetEvasion();
 
-            float chanceToEvade = evasion / (evasion + (3 * accuracy));
-            Random rand = new Random();
-            double d = rand.NextDouble();
-            if (d <= chanceToEvade) {
-                damage = 0;
-                crit = false;
-                CombatText.NewText(target.getRect(), Color.Green, "Evaded!");
+                float chanceToEvade = evasion / (evasion + (3 * accuracy));
+                Random rand = new Random();
+                double d = rand.NextDouble();
+                if (d <= chanceToEvade) {
+                    damage = 0;
+                    crit = false;
+                    CombatText.NewText(target.getRect(), Color.Green, "Evaded!");
+                }
             }
+
+            this.player.HealEffect((int)(config.WitsLeechPerPoint * Stats[(int)PlayerStats.Potency] * damage));
         }
 
         public override void ModifyHitPvpWithProj(Projectile proj, Player target, ref int damage, ref bool crit)
@@ -174,17 +187,22 @@ namespace KArpReborn.CORE.Players
                 return;
             }
 
-            float accuracy = GetAccuracy();
-            float evasion = defenderPlayer.GetEvasion();
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            if (config.DoEnemyEvasion) {
+                float accuracy = GetAccuracy();
+                float evasion = defenderPlayer.GetEvasion();
 
-            float chanceToEvade = evasion / (evasion + (3 * accuracy));
-            Random rand = new Random();
-            double d = rand.NextDouble();
-            if (d <= chanceToEvade) {
-                damage = 0;
-                crit = false;
-                CombatText.NewText(target.getRect(), Color.Green, "Evaded!");
+                float chanceToEvade = evasion / (evasion + (3 * accuracy));
+                Random rand = new Random();
+                double d = rand.NextDouble();
+                if (d <= chanceToEvade) {
+                    damage = 0;
+                    crit = false;
+                    CombatText.NewText(target.getRect(), Color.Green, "Evaded!");
+                }
             }
+
+            this.player.HealEffect((int)(config.WitsLeechPerPoint * Stats[(int)PlayerStats.Potency] * damage));
         }
 
         public override bool PreHurt(bool pvp, bool quiet, ref int damage, ref int hitDirection, ref bool crit, ref bool customDamage, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
@@ -242,16 +260,18 @@ namespace KArpReborn.CORE.Players
 
         public int GetAccuracy()
         {
-            int baseAcc = 3 + (2 * level);
-            float accMod = 1 + (0.05f * (float)Stats[(int)PlayerStats.Quickness]);
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            int baseAcc = config.PlayerAccuracyBase + (config.PlayerAccuracyGrowth * level);
+            float accMod = 1 + (config.QuicknessAccuracyPerPoint * (float)Stats[(int)PlayerStats.Quickness]);
             int finalAcc = (int)(baseAcc * accMod);
             return finalAcc;
         }
 
         public int GetEvasion()
         {
-            int baseEvade = 3 + (2 * level);
-            float evadeMod = 1 + (0.05f * (float)Stats[(int)PlayerStats.Quickness]);
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            int baseEvade = config.PlayerEvasionBase + (config.PlayerEvasionGrowth * level);
+            float evadeMod = 1 + (config.QuicknessEvasionPerPoint * (float)Stats[(int)PlayerStats.Quickness]);
             int finalEvade = (int)(baseEvade * evadeMod);
             return finalEvade;
         }

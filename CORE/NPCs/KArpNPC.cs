@@ -13,7 +13,7 @@ using KArpReborn.CORE.NPCs.Components;
 
 namespace KArpReborn.CORE.NPCs
 {
-    public class KNPC : GlobalNPC
+    public class KArpNPC : GlobalNPC
     {
 
         public override bool PreAI(NPC npc) {
@@ -46,20 +46,23 @@ namespace KArpReborn.CORE.NPCs
                 return;
             }
 
-            NPCStatDef npcsd = npccs.TryGetComponent<NPCStatDef>(() => new NPCStatDef());
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            if (config.DoPlayerEvasion) {
+                NPCStatDef npcsd = npccs.TryGetComponent<NPCStatDef>(() => new NPCStatDef());
 
-            float accuracy = npcsd.GetAccuracy();
-            float evasion = c.GetEvasion();
+                float accuracy = npcsd.GetAccuracy();
+                float evasion = c.GetEvasion();
 
-            //Asymptotic curve, where if (evasion == accuracy) then chanceToEvade = 0.25.
-            //The higher your evasion/accuracy, the less each point actually does.
-            float chanceToEvade = evasion / (evasion + (3 * accuracy));
-            Random rand = new Random();
-            double d = rand.NextDouble();
-            if (d <= chanceToEvade) {
-                damage = 0;
-                crit = false;
-                CombatText.NewText(target.getRect(), Color.Green, "Evaded!");
+                //Asymptotic curve, where if (evasion == accuracy) then chanceToEvade = 0.25.
+                //The higher your evasion/accuracy, the less each point actually does.
+                float chanceToEvade = evasion / (evasion + (3 * accuracy));
+                Random rand = new Random();
+                double d = rand.NextDouble();
+                if (d <= chanceToEvade) {
+                    damage = 0;
+                    crit = false;
+                    CombatText.NewText(target.getRect(), Color.Green, "Evaded!");
+                }
             }
 
             NPCCombatTracker npcct = npccs.TryGetComponent<NPCCombatTracker>(() => new NPCCombatTracker());
@@ -69,6 +72,10 @@ namespace KArpReborn.CORE.NPCs
 
         public override void ModifyHitNPC(NPC npc, NPC target, ref int damage, ref float knockback, ref bool crit)
         {
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            if (!config.DoEnemyEvasion)
+                return;
+
             NPCComponentSystem attackerNPCCS = npc.GetGlobalNPC<NPCComponentSystem>();
             if (attackerNPCCS == null)
             {

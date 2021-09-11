@@ -1,1 +1,10 @@
-[c/ff00ff:THIS SHOULD NOT BE PUBLISHED] is a pretty cool mod, it does...this. Modify this file with a description of your mod.
+KArpReborn! Based (heavily) on Kalciphoz's RPG Mod (KRPG), this mod aims at bringing back the legendary mod with a new, shiny coat of paint!
+It's Configurable! It's Extensible! It's Modularized!
+
+This mod is the CORE module. It's needed for all of the other modules.
+It implements KRPG's leveling and stat systems, with a few notable tweaks:
+
+1. Enemies only grant experience to players who actively fought them. No more sacrificing enemies to the lava pit for XP, or getting a level because your friend across the map killed something.
+2. Evasion has been overhauled. Enemies no longer get invincibility frames, and players get much shorter invincibility.
+2.1. Evade chance calculation has been changed. Accuracy is now more important to build, and evasion-based characters need to focus it harder.
+3. The old KRPG UI is, unfortunately, gone. The inventory system has been completely removed, rendering it useless. (The deer skull survived, though.)

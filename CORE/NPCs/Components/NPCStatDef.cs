@@ -30,12 +30,14 @@ namespace KArpReborn.CORE.NPCs.Components
 
         public virtual int GetAccuracy()
         {
-            return 3 + (5 * GetLevel());
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            return config.EnemyAccuracyBase + (config.EnemyAccuracyGrowth * GetLevel());
         }
 
         public virtual int GetEvasion()
         {
-            return 3 + (5 * GetLevel());
+            KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
+            return config.EnemyEvasionBase + (config.EnemyEvasionGrowth * GetLevel());
         }
 
         public virtual int GetResist(Element element)

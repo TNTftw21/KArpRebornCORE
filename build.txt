@@ -1,4 +1,4 @@
-displayName = [c/ff00ff:THIS SHOULD NOT BE PUBLISHED]
+displayName = KArpReborn - CORE Module
 author = Kalciphoz, TNTftw21
-version = 0.1
+version = 1.0.0
 includePDB = false
