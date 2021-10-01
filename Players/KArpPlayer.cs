@@ -21,10 +21,10 @@ namespace KArpRebornCORE.Players
         public int level { get; internal set; }
         public int baseEvasion = 0;
         public float evasionIncrease = 1.0f;
-        public int totalEvasion => (int)(baseEvasion * evasionIncrease);
+        public int totalEvasion { get; private set; }
         public int baseAccuracy = 0;
         public float accuracyIncrease = 1.0f;
-        public int totalAccuracy => (int)(baseAccuracy * accuracyIncrease);
+        public int totalAccuracy { get; private set; }
 
         public event LevelUpEventHandler OnLevelUp;
         public delegate void LevelUpEventHandler(KArpPlayer krpgPlayer, Player player);
@@ -61,8 +61,8 @@ namespace KArpRebornCORE.Players
             KArpConfigServer config = ModContent.GetInstance<KArpConfigServer>();
             baseEvasion = config.PlayerEvasionBase + (level * config.PlayerEvasionGrowth);
             baseAccuracy = config.PlayerAccuracyBase + (level * config.PlayerAccuracyGrowth);
-            evasionIncrease += config.QuicknessEvasionPerPoint * Stats[(int)PlayerStats.Quickness];
-            accuracyIncrease += config.QuicknessAccuracyPerPoint * Stats[(int)PlayerStats.Quickness];
+            evasionIncrease = 1 + config.QuicknessEvasionPerPoint * Stats[(int)PlayerStats.Quickness];
+            accuracyIncrease = 1 + config.QuicknessAccuracyPerPoint * Stats[(int)PlayerStats.Quickness];
         }
 
         public override void PostUpdateEquips()
@@ -86,6 +86,12 @@ namespace KArpRebornCORE.Players
             player.meleeSpeed += config.QuicknessAttackSpeedPerPoint * Stats[(int)PlayerStats.Quickness];
             player.moveSpeed += config.QuicknessMovementPerPoint * Stats[(int)PlayerStats.Quickness];
             player.jumpSpeedBoost += config.QuicknessMovementPerPoint * Stats[(int)PlayerStats.Quickness];
+        }
+
+        public override void PostUpdate()
+        {
+            this.totalAccuracy = (int)(this.baseAccuracy * this.accuracyIncrease);
+            this.totalEvasion = (int)(this.baseEvasion * this.evasionIncrease);
         }
 
         public override void ModifyHitNPC(Item item, NPC npc, ref int damage, ref float knockback, ref bool crit)

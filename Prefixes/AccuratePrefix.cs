@@ -9,7 +9,7 @@ namespace KArpRebornCORE.Prefixes
     {
         internal readonly byte _power;
 
-        public override float RollChance(Item item) => 5f;
+        public override float RollChance(Item item) => 1f;
 
         public override bool CanRoll(Item item) => true;
 
@@ -33,11 +33,6 @@ namespace KArpRebornCORE.Prefixes
             KArpRebornCOREMain.Mod.AddPrefix("Uncanny", new AccuratePrefix(3));
             KArpRebornCOREMain.Mod.AddPrefix("Pinpoint", new AccuratePrefix(4));
             return false;
-        }
-
-        public override void Apply(Item item)
-        {
-            Main.player[item.owner].GetModPlayer<Players.KArpPlayer>().baseAccuracy += this._power;
         }
 
         public override void ModifyValue(ref float valueMult)

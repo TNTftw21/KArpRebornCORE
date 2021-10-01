@@ -18,27 +18,18 @@ namespace KArpRebornCORE.UIs
             DeerSkullEyes = new Texture2D[Flames.Length];
             Mod loader = KArpRebornCOREMain.Mod;
 
-            loader.Logger.Debug("Got mod");
             DeerSkull = loader.GetTexture(GUI_DIRECTORY + "DeerSkull");
-            loader.Logger.Debug("Got DeerSkull");
             Players.PlayerStats stat = Players.PlayerStats.Resilience;
             Flames[(int)stat] = loader.GetTexture(GUI_DIRECTORY + "Flames_"+stat.ToString());
-            loader.Logger.Debug("Got Flames[" + stat.ToString() + "]");
             DeerSkullEyes[(int)stat] = loader.GetTexture(GUI_DIRECTORY + "DeerSkull_Eyes_" + stat.ToString());
-            loader.Logger.Debug("Got DeerSkullEyes[" + stat.ToString() + "]");
             stat = Players.PlayerStats.Quickness;
             Flames[(int)stat] = loader.GetTexture(GUI_DIRECTORY + "Flames_"+stat.ToString());
-            loader.Logger.Debug("Got Flames[" + stat.ToString() + "]");
             DeerSkullEyes[(int)stat] = loader.GetTexture(GUI_DIRECTORY + "DeerSkull_Eyes_" + stat.ToString());
-            loader.Logger.Debug("Got DeerSkullEyes[" + stat.ToString() + "]");
             stat = Players.PlayerStats.Potency;
             Flames[(int)stat] = loader.GetTexture(GUI_DIRECTORY + "Flames_"+stat.ToString());
-            loader.Logger.Debug("Got Flames[" + stat.ToString() + "]");
             DeerSkullEyes[(int)stat] = loader.GetTexture(GUI_DIRECTORY + "DeerSkull_Eyes_" + stat.ToString());
-            loader.Logger.Debug("Got DeerSkullEyes[" + stat.ToString() + "]");
             LevelBar = loader.GetTexture(GUI_DIRECTORY + "LevelBar");
-            loader.Logger.Debug("Got LevelBar");
-        }
+            }
 
         public static void UnloadGfx()
         {
